@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema VENTA - Dulce Ruth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6;
+      }
+      .factura-papel {
+        min-height: 297mm;
+      }
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body class="py-10 px-4">
+    <div
+      class="max-w-4xl mx-auto bg-white shadow-2xl rounded-sm factura-papel flex flex-col border-t-8 border-pink-500"
+    >
+      <div
+        class="p-10 flex justify-between items-start border-b border-gray-100"
+      >
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div
+              class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center font-bold text-pink-600 text-xl italic shadow-sm"
+            >
+              <img src="./src/image 13.png" alt="" />
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800">Dulce Ruth</h1>
+          </div>
+          <p class="text-gray-500 text-sm italic">
+            Insumos de repostería artesanal
+          </p>
+        </div>
+        <div class="text-right">
+          <h2
+            class="text-xl font-bold text-gray-900 uppercase tracking-tighter"
+          >
+            Factura de Venta
+          </h2>
+          <p class="text-pink-600 font-mono font-bold text-lg">N° 000-001</p>
+          <p class="text-gray-400 text-xs mt-1 uppercase tracking-widest">
+            18 Marzo, 2024
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="p-8 bg-gray-50 grid grid-cols-1 md:grid-cols-2 gap-8 border-b"
+      >
+        <div>
+          <label
+            class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
+            >Cliente</label
+          >
+          <input
+            type="text"
+            placeholder="Ej: Pastelería La Delicia"
+            class="w-full border p-2 rounded-md outline-none focus:ring-2 focus:ring-pink-400"
+          />
+        </div>
+        <div class="flex flex-col items-end">
+          <label
+            class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
+            >Tipo de Tarifa</label
+          >
+          <div class="inline-flex p-1 bg-gray-200 rounded-lg">
+            <button
+              id="btnMin"
+              onclick="setTarifa('MIN')"
+              class="px-6 py-1.5 text-xs font-bold rounded-md bg-white text-pink-600 shadow-sm transition-all"
+            >
+              MINORISTA
+            </button>
+            <button
+              id="btnMay"
+              onclick="setTarifa('MAY')"
+              class="px-6 py-1.5 text-xs font-bold rounded-md text-gray-500 hover:text-pink-600 transition-all"
+            >
+              MAYORISTA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-8 border-b flex flex-wrap gap-4 items-end bg-white">
+        <div class="flex-1 min-w-[250px]">
+          <label
+            class="block text-[10px] font-bold text-pink-500 uppercase mb-2"
+            >Seleccionar Insumo</label
+          >
+          <select
+            id="selectProducto"
+            class="w-full border p-2.5 rounded-md text-sm outline-none focus:border-pink-500"
+          >
+            <option value="">Buscar producto...</option>
+          </select>
+        </div>
+        <div class="w-24 text-center">
+          <label
+            class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
+            >Cant.</label
+          >
+          <input
+            type="number"
+            id="inputCant"
+            value="1"
+            min="1"
+            class="w-full border p-2 rounded-md text-center font-bold"
+          />
+        </div>
+        <button
+          onclick="agregarAlCarrito()"
+          class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-8 py-2.5 rounded-md transition-all active:scale-95 shadow-lg shadow-pink-100"
+        >
+          + AGREGAR
+        </button>
+      </div>
+
+      <div class="flex-grow px-8 py-4">
+        <table class="w-full">
+          <thead>
+            <tr class="text-[10px] font-bold text-gray-400 uppercase border-b">
+              <th class="py-4 text-left">Producto</th>
+              <th class="py-4 text-center w-24">Cantidad</th>
+              <th class="py-4 text-right w-32">P. Unit</th>
+              <th class="py-4 text-right w-32">Subtotal</th>
+              <th class="py-4 text-center w-16"></th>
+            </tr>
+          </thead>
+          <tbody id="tablaCuerpo" class="divide-y divide-gray-50"></tbody>
+        </table>
+        <div id="emptyState" class="py-20 text-center text-gray-300 italic">
+          No hay productos en la factura
+        </div>
+      </div>
+
+      <div
+        class="p-10 bg-slate-900 text-white flex justify-between items-end rounded-b-sm"
+      >
+        <div class="text-xs text-gray-400 space-y-1">
+          <p>Precios expresados en Soles (S/.)</p>
+          <p>Incluye IGV legal vigente.</p>
+        </div>
+        <div class="w-64 space-y-2">
+          <div class="flex justify-between text-gray-400 text-sm">
+            <span>Subtotal:</span>
+            <span id="txtSubtotal">S/ 0.00</span>
+          </div>
+          <div class="flex justify-between text-gray-400 text-sm">
+            <span>Impuestos (18%):</span>
+            <span id="txtImpuestos">S/ 0.00</span>
+          </div>
+          <div
+            class="flex justify-between items-end border-t border-gray-700 pt-3"
+          >
+            <span class="text-xl font-bold text-pink-400">TOTAL:</span>
+            <span id="txtTotal" class="text-4xl font-bold font-mono"
+              >S/ 0.00</span
+            >
+          </div>
+          <button
+            class="w-full bg-pink-600 py-4 rounded-lg mt-6 font-bold hover:bg-pink-500 transition-all uppercase tracking-widest text-xs"
+          >
+            Emitir y Descargar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const productosDB = [
+        {
+          id: 1,
+          nombre: "Molde Silicona",
+          min: 20,
+          may: 15,
+          stock: 50,
+          vence: null,
+        },
+        {
+          id: 2,
+          nombre: "Colorante Rojo",
+          min: 10,
+          may: 7,
+          stock: 100,
+          vence: "12/2026",
+        },
+        {
+          id: 3,
+          nombre: "Cobertura Chocolate",
+          min: 25,
+          may: 20,
+          stock: 30,
+          vence: "10/2026",
+        },
+      ];
+
+      let carrito = [];
+      let tarifaActual = "MIN";
+
+      const select = document.getElementById("selectProducto");
+      productosDB.forEach((p) => {
+        let opt = document.createElement("option");
+        opt.value = p.id;
+        opt.innerHTML = `${p.nombre} (Stock: ${p.stock})`;
+        select.appendChild(opt);
+      });
+
+      function setTarifa(tipo) {
+        tarifaActual = tipo;
+        const btnMin = document.getElementById("btnMin");
+        const btnMay = document.getElementById("btnMay");
+
+        if (tipo === "MIN") {
+          btnMin.className =
+            "px-6 py-1.5 text-xs font-bold rounded-md bg-white text-pink-600 shadow-sm transition-all";
+          btnMay.className =
+            "px-6 py-1.5 text-xs font-bold rounded-md text-gray-500 hover:text-pink-600 transition-all";
+        } else {
+          btnMay.className =
+            "px-6 py-1.5 text-xs font-bold rounded-md bg-white text-pink-600 shadow-sm transition-all";
+          btnMin.className =
+            "px-6 py-1.5 text-xs font-bold rounded-md text-gray-500 hover:text-pink-600 transition-all";
+        }
+        actualizarTabla();
+        function agregarAlCarrito() {
+          const id = parseInt(select.value);
+          const cant = parseInt(document.getElementById("inputCant").value);
+
+          if (!id || cant <= 0) return alert("Seleccione un producto válido");
+
+          const prodOriginal = productosDB.find((p) => p.id === id);
+
+          const existe = carrito.find((p) => p.id === id);
+          if (existe) {
+            existe.cantidad += cant;
+          } else {
+            carrito.push({ ...prodOriginal, cantidad: cant });
+          }
+
+          actualizarTabla();
+          select.value = "";
+        }
+
+        function eliminar(id) {
+          carrito = carrito.filter((p) => p.id !== id);
+          actualizarTabla();
+        }
+
+        function actualizarTabla() {
+          const cuerpo = document.getElementById("tablaCuerpo");
+          const empty = document.getElementById("emptyState");
+          cuerpo.innerHTML = "";
+
+          if (carrito.length === 0) {
+            empty.style.display = "block";
+          } else {
+            empty.style.display = "none";
+          }
+
+          let subtotalGral = 0;
+
+          carrito.forEach((p, index) => {
+            const precioUnit = tarifaActual === "MIN" ? p.min : p.may;
+            const subtotalItem = precioUnit * p.cantidad;
+            subtotalGral += subtotalItem;
+
+            cuerpo.innerHTML += `
+                    <tr class="animate-in fade-in duration-300">
+                        <td class="py-5">
+                            <span class="font-bold text-gray-800 block">${p.nombre}</span>
+                            <div class="flex gap-2">
+                                ${p.stock < 40 ? `<span class="text-[9px] font-bold text-orange-500 uppercase">Stock Bajo: ${p.stock}</span>` : ""}
+                                ${p.vence ? `<span class="text-[9px] font-bold text-red-400 uppercase italic">Vence: ${p.vence}</span>` : ""}
+                            </div>
+                        </td>
+                        <td class="py-5 text-center font-mono font-bold text-gray-600">${p.cantidad}</td>
+                        <td class="py-5 text-right font-mono text-gray-500">S/ ${precioUnit.toFixed(2)}</td>
+                        <td class="py-5 text-right font-bold text-gray-900 font-mono text-lg">S/ ${subtotalItem.toFixed(2)}</td>
+                        <td class="py-5 text-center">
+                            <button onclick="eliminar(${p.id})" class="text-gray-300 hover:text-red-500 transition-colors">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+          });
+
+          const impuestos = subtotalGral * 0.18;
+          const total = subtotalGral + impuestos;
+
+          document.getElementById("txtSubtotal").innerText =
+            `S/ ${subtotalGral.toFixed(2)}`;
+          document.getElementById("txtImpuestos").innerText =
+            `S/ ${impuestos.toFixed(2)}`;
+          document.getElementById("txtTotal").innerText =
+            `S/ ${total.toFixed(2)}`;
+        }
+      }
+    </script>
+  </body>
+</html>
