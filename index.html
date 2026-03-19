@@ -178,6 +178,7 @@
     </div>
 
     <script>
+      // 1. BASE DE DATOS (Del PDF proporcionado)
       const productosDB = [
         {
           id: 1,
@@ -208,6 +209,7 @@
       let carrito = [];
       let tarifaActual = "MIN";
 
+      // Inicializar selector
       const select = document.getElementById("selectProducto");
       productosDB.forEach((p) => {
         let opt = document.createElement("option");
@@ -216,6 +218,7 @@
         select.appendChild(opt);
       });
 
+      // 2. LÓGICA DE TARIFA
       function setTarifa(tipo) {
         tarifaActual = tipo;
         const btnMin = document.getElementById("btnMin");
@@ -232,50 +235,56 @@
           btnMin.className =
             "px-6 py-1.5 text-xs font-bold rounded-md text-gray-500 hover:text-pink-600 transition-all";
         }
+        actualizarTabla(); // Recalcular precios de productos ya agregados
+      }
+
+      // 3. AGREGAR AL CARRITO
+      function agregarAlCarrito() {
+        const id = parseInt(select.value);
+        const cant = parseInt(document.getElementById("inputCant").value);
+
+        if (!id || cant <= 0) return alert("Seleccione un producto válido");
+
+        const prodOriginal = productosDB.find((p) => p.id === id);
+
+        // Si ya existe en carrito, sumar cantidad
+        const existe = carrito.find((p) => p.id === id);
+        if (existe) {
+          existe.cantidad += cant;
+        } else {
+          carrito.push({ ...prodOriginal, cantidad: cant });
+        }
+
         actualizarTabla();
-        function agregarAlCarrito() {
-          const id = parseInt(select.value);
-          const cant = parseInt(document.getElementById("inputCant").value);
+        select.value = ""; // Limpiar buscador
+      }
 
-          if (!id || cant <= 0) return alert("Seleccione un producto válido");
+      // 4. ELIMINAR
+      function eliminar(id) {
+        carrito = carrito.filter((p) => p.id !== id);
+        actualizarTabla();
+      }
 
-          const prodOriginal = productosDB.find((p) => p.id === id);
+      // 5. RENDERIZAR Y CALCULAR
+      function actualizarTabla() {
+        const cuerpo = document.getElementById("tablaCuerpo");
+        const empty = document.getElementById("emptyState");
+        cuerpo.innerHTML = "";
 
-          const existe = carrito.find((p) => p.id === id);
-          if (existe) {
-            existe.cantidad += cant;
-          } else {
-            carrito.push({ ...prodOriginal, cantidad: cant });
-          }
-
-          actualizarTabla();
-          select.value = "";
+        if (carrito.length === 0) {
+          empty.style.display = "block";
+        } else {
+          empty.style.display = "none";
         }
 
-        function eliminar(id) {
-          carrito = carrito.filter((p) => p.id !== id);
-          actualizarTabla();
-        }
+        let subtotalGral = 0;
 
-        function actualizarTabla() {
-          const cuerpo = document.getElementById("tablaCuerpo");
-          const empty = document.getElementById("emptyState");
-          cuerpo.innerHTML = "";
+        carrito.forEach((p, index) => {
+          const precioUnit = tarifaActual === "MIN" ? p.min : p.may;
+          const subtotalItem = precioUnit * p.cantidad;
+          subtotalGral += subtotalItem;
 
-          if (carrito.length === 0) {
-            empty.style.display = "block";
-          } else {
-            empty.style.display = "none";
-          }
-
-          let subtotalGral = 0;
-
-          carrito.forEach((p, index) => {
-            const precioUnit = tarifaActual === "MIN" ? p.min : p.may;
-            const subtotalItem = precioUnit * p.cantidad;
-            subtotalGral += subtotalItem;
-
-            cuerpo.innerHTML += `
+          cuerpo.innerHTML += `
                     <tr class="animate-in fade-in duration-300">
                         <td class="py-5">
                             <span class="font-bold text-gray-800 block">${p.nombre}</span>
@@ -292,18 +301,18 @@
                         </td>
                     </tr>
                 `;
-          });
+        });
 
-          const impuestos = subtotalGral * 0.18;
-          const total = subtotalGral + impuestos;
+        // Cálculos finales
+        const impuestos = subtotalGral * 0.18;
+        const total = subtotalGral + impuestos;
 
-          document.getElementById("txtSubtotal").innerText =
-            `S/ ${subtotalGral.toFixed(2)}`;
-          document.getElementById("txtImpuestos").innerText =
-            `S/ ${impuestos.toFixed(2)}`;
-          document.getElementById("txtTotal").innerText =
-            `S/ ${total.toFixed(2)}`;
-        }
+        document.getElementById("txtSubtotal").innerText =
+          `S/ ${subtotalGral.toFixed(2)}`;
+        document.getElementById("txtImpuestos").innerText =
+          `S/ ${impuestos.toFixed(2)}`;
+        document.getElementById("txtTotal").innerText =
+          `S/ ${total.toFixed(2)}`;
       }
     </script>
   </body>
